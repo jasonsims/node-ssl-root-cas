@@ -3,7 +3,7 @@
  *
  * generated from https://mxr.mozilla.org/nss/source/lib/ckfw/builtins/certdata.txt?raw=1
  */
-
+var fs = require('fs')
 var cas = module.exports = [
   // GTE CyberTrust Global Root
   "-----BEGIN CERTIFICATE-----\n" +
@@ -4279,3 +4279,14 @@ module.exports.addFile = function (filepath) {
   opts.ca.push(require('fs').readFileSync(require('path').join.apply(null, filepaths)));
   return module.exports;
 };
+module.exports.addCert = function (cert) {
+  var opts = require('https').globalAgent.options;
+  var isString = new RegExp(/^-+BEGIN CERTIFICATE-+/).test(cert)
+  var isBuffer = Buffer.isBuffer(cert)
+  var isFilepath = (!isString && !isBuffer) && fs.statSync(cert).isFile()
+
+  if (isFilepath) {return this.addFile(cert)}
+  opts.ca = opts.ca || [];
+  opts.ca.push(cert);
+  return module.exports;
+}
